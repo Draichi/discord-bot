@@ -13,6 +13,8 @@ export default async function handler(request, response) {
   });
   client.login(process.env.DISCORD_BOT_TOKEN);
 
+  response.setHeader("Content-Type", "application/json");
+
   return response.end({
     success: true,
   });
