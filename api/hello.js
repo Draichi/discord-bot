@@ -9,11 +9,12 @@ export default async function handler(_, response) {
   client.once(Events.ClientReady, async (c) => {
     const guild = c.guilds.cache.get("1091486972616376441");
     const channel = guild.channels.cache.get("1102648245106257990");
-    await channel.send("foo bar baz");
-  });
-  client.login(process.env.DISCORD_BOT_TOKEN);
+    const discordResponse = await channel.send("foo bar baz");
 
-  return response.send({
-    success: true,
+    return response.send({
+      ...discordResponse,
+    });
   });
+
+  client.login(process.env.DISCORD_BOT_TOKEN);
 }
