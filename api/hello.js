@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-export default async function handler(request, response) {
+export default async function handler() {
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
   client.once(Events.ClientReady, async (c) => {
@@ -13,9 +13,7 @@ export default async function handler(request, response) {
   });
   client.login(process.env.DISCORD_BOT_TOKEN);
 
-  response.setHeader("Content-Type", "application/json");
-
-  return response.end({
+  return {
     success: true,
-  });
+  };
 }
