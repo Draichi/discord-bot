@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-export default async function handler() {
+export default async function handler(_, response) {
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
   client.once(Events.ClientReady, async (c) => {
@@ -13,7 +13,7 @@ export default async function handler() {
   });
   client.login(process.env.DISCORD_BOT_TOKEN);
 
-  return {
+  return response.send({
     success: true,
-  };
+  });
 }
