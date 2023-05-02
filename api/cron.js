@@ -5,10 +5,10 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 export default async function handler(_, response) {
-  const response = await fetch(
+  const awwwardsResponse = await fetch(
     "https://www.awwwards.com/websites/sites_of_the_day/"
   );
-  const r = await response.text();
+  const r = await awwwardsResponse.text();
 
   const dom = new JSDOM(r);
   const cardSite = dom.window.document.querySelector(".card-site");
