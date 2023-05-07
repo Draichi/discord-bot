@@ -13,10 +13,12 @@ client.login(process.env.DISCORD_BOT_TOKEN);
 
 const app = express();
 
+let cronJob;
+
 client.once("ready", async (c) => {
   console.log(`Online as ${c?.user?.tag}`);
 
-  new cron.CronJob("*/10 * * * *", async () => {
+  cronJob = new cron.CronJob("* * * * *", async () => {
     const awwwardsResponse = await fetch(
       "https://www.awwwards.com/websites/sites_of_the_day/"
     );
@@ -54,8 +56,10 @@ client.once("ready", async (c) => {
       embeds: [exampleEmbed],
     });
 
-    console.log(discordResponse);
+    console.log(...discordResponse);
   });
+
+  cronJob?.start();
 });
 
 app.get("/api", (req, res) => {
@@ -64,6 +68,16 @@ app.get("/api", (req, res) => {
   res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
 
   res.json({ client });
+});
+
+app.get("/api/start-cron", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+
+  res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
+
+  cronJob?.start();
+
+  res.json({ cronJob });
 });
 
 module.exports = app;
