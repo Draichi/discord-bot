@@ -1,7 +1,9 @@
 import express from "express";
-import { Client, Events, GatewayIntentBits, EmbedBuilder } from "discord.js";
+import { Client, GatewayIntentBits, EmbedBuilder } from "discord.js";
 import { JSDOM } from "jsdom";
 import * as dotenv from "dotenv";
+
+const cron = require("cron");
 
 dotenv.config();
 
@@ -11,20 +13,14 @@ client.login(process.env.DISCORD_BOT_TOKEN);
 
 const app = express();
 
-app.get("/api", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
+client.once("ready", async (c) => {
+  console.log(`Online as ${client.user.tag}`);
 
-  res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
+  new cron.CronJob("*/10 * * * *", async () => {
+    const awwwardsResponse = await fetch(
+      "https://www.awwwards.com/websites/sites_of_the_day/"
+    );
 
-  res.json({ name: "John Doe" });
-});
-
-app.get("/api/cron", async (req, res) => {
-  const awwwardsResponse = await fetch(
-    "https://www.awwwards.com/websites/sites_of_the_day/"
-  );
-
-  client.once(Events.ClientReady, async (c) => {
     const r = await awwwardsResponse.text();
 
     const dom = new JSDOM(r);
@@ -58,12 +54,16 @@ app.get("/api/cron", async (req, res) => {
       embeds: [exampleEmbed],
     });
 
-    res.setHeader("Content-Type", "application/json");
-
-    res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
-
-    res.json(...discordResponse);
+    console.log(discordResponse);
   });
+});
+
+app.get("/api", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+
+  res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
+
+  res.json({ name: client.user.tag });
 });
 
 module.exports = app;
