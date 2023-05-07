@@ -1,3 +1,12 @@
 {
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }]
+  "crons": [
+    {
+      "path": "/api/warm-cron",
+      "schedule": "0 19 * * *"
+    },
+    {
+      "path": "/api/cron",
+      "schedule": "0 20 * * *"
+    }
+  ]
 }
