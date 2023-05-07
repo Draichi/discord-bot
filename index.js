@@ -1,5 +1,4 @@
-import { createApp, eventHandler, toNodeListener, createRouter } from "h3";
-import { listen } from "listhen";
+import { createApp, eventHandler, createRouter } from "h3";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import * as dotenv from "dotenv";
 
@@ -32,4 +31,4 @@ const router = createRouter()
   );
 app.use(router);
 
-listen(toNodeListener(app));
+module.exports = app;
