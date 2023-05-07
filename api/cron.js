@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits, EmbedBuilder } from "discord.js";
+import { Client, GatewayIntentBits, EmbedBuilder } from "discord.js";
 import { JSDOM } from "jsdom";
 import * as dotenv from "dotenv";
 
@@ -11,40 +11,56 @@ export default async function handler(_, response) {
     "https://www.awwwards.com/websites/sites_of_the_day/"
   );
 
-  client.login(process.env.DISCORD_BOT_TOKEN);
+  const r = await awwwardsResponse.text();
 
-  client.once(Events.ClientReady, async (c) => {
-    const r = await awwwardsResponse.text();
+  const dom = new JSDOM(r);
+  const cards = dom.window.document.querySelectorAll("li.js-collectable");
 
-    const dom = new JSDOM(r);
-    const cardSite = dom.window.document.querySelector(".card-site");
-    const websiteURL = cardSite.querySelector(".figure-rollover__bt").href;
-    const websiteTitle = cardSite
+  const res = [];
+
+  for (let i = 0; i < 3; i++) {
+    const card = cards.item(i);
+    const websiteURL = card
+      .querySelector(".figure-rollover__bt")
+      .getAttribute("href");
+    const websiteTitle = card
       .querySelectorAll(".figure-rollover__row")
       .item(1).textContent;
-    const websiteImage = cardSite
+    const websiteImage = card
       .querySelector(".figure-rollover__file")
       .getAttribute("data-srcset")
       .split(" ")[0];
+    const websiteCompany = card.querySelector(
+      "figcaption.avatar-name__name"
+    ).textContent;
+    res.push({ websiteImage, websiteTitle, websiteURL, websiteCompany });
+  }
 
+  client.login(process.env.DISCORD_BOT_TOKEN);
+
+  client.once("ready", async (c) => {
     const guild = c.guilds.cache.get("1091486972616376441");
     const channel = guild.channels.cache.get("1102648245106257990");
 
-    const exampleEmbed = new EmbedBuilder()
-      .setColor(0x0099ff)
-      .setTitle("Site of the day")
-      .setThumbnail(websiteImage)
-      .addFields(
-        { name: "Website URL", value: websiteURL },
-        { name: "Webstie Title", value: websiteTitle },
-        { name: "Website title", value: "Some value here", inline: true },
-        { name: "Inline field title", value: "Some value here", inline: true }
-      )
-      .setImage(websiteImage)
-      .setTimestamp();
+    const embeds = [];
+
+    res.forEach((item) => {
+      const { websiteImage, websiteTitle, websiteURL, websiteCompany } = item;
+      const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+
+      const embededPost = new EmbedBuilder()
+        .setColor(+`0x${randomColor}`)
+        .setTitle(websiteTitle)
+        .setDescription(websiteCompany)
+        .setURL(websiteURL)
+        .setThumbnail(websiteImage);
+
+      embeds.push(embededPost);
+    });
 
     const discordResponse = await channel.send({
-      embeds: [exampleEmbed],
+      content: "Quais serão os sites de hoje?",
+      embeds,
     });
 
     return response.send({
