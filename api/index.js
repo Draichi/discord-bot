@@ -7,6 +7,8 @@ dotenv.config();
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
+client.login(process.env.DISCORD_BOT_TOKEN);
+
 const app = express();
 
 app.get("/api", (req, res) => {
