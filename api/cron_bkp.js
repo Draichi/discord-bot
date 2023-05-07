@@ -5,25 +5,26 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 export default async function handler(_, response) {
+  const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
   const awwwardsResponse = await fetch(
     "https://www.awwwards.com/websites/sites_of_the_day/"
   );
-  const r = await awwwardsResponse.text();
-
-  const dom = new JSDOM(r);
-  const cardSite = dom.window.document.querySelector(".card-site");
-  const websiteURL = cardSite.querySelector(".figure-rollover__bt").href;
-  const websiteTitle = cardSite
-    .querySelectorAll(".figure-rollover__row")
-    .item(1).textContent;
-  const websiteImage = cardSite
-    .querySelector(".figure-rollover__file")
-    .getAttribute("data-srcset")
-    .split(" ")[0];
-
-  const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
   client.once(Events.ClientReady, async (c) => {
+    const r = await awwwardsResponse.text();
+
+    const dom = new JSDOM(r);
+    const cardSite = dom.window.document.querySelector(".card-site");
+    const websiteURL = cardSite.querySelector(".figure-rollover__bt").href;
+    const websiteTitle = cardSite
+      .querySelectorAll(".figure-rollover__row")
+      .item(1).textContent;
+    const websiteImage = cardSite
+      .querySelector(".figure-rollover__file")
+      .getAttribute("data-srcset")
+      .split(" ")[0];
+
     const guild = c.guilds.cache.get("1091486972616376441");
     const channel = guild.channels.cache.get("1102648245106257990");
 
