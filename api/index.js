@@ -14,7 +14,7 @@ client.login(process.env.DISCORD_BOT_TOKEN);
 const app = express();
 
 client.once("ready", async (c) => {
-  console.log(`Online as ${client.user.tag}`);
+  console.log(`Online as ${c?.user?.tag}`);
 
   new cron.CronJob("*/10 * * * *", async () => {
     const awwwardsResponse = await fetch(
