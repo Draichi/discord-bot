@@ -63,7 +63,7 @@ app.get("/api", (req, res) => {
 
   res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
 
-  res.json({ name: client.user.tag });
+  res.json({ client });
 });
 
 module.exports = app;
