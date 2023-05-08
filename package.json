@@ -15,5 +15,7 @@
     "dotenv": "^16.0.3",
     "jsdom": "^22.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "vercel": "^29.1.1"
+  }
 }
