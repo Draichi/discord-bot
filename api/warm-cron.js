@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, EmbedBuilder } from "discord.js";
-import { JSDOM } from "jsdom";
 import * as dotenv from "dotenv";
+import * as cheerio from "cheerio";
 
 dotenv.config();
 
@@ -11,31 +11,28 @@ export default async function handler(_, response) {
     "https://github.com/trending/typescript?since=daily"
   );
 
-  const r = await githubTypescriptTrendingPage.text();
+  const body = await githubTypescriptTrendingPage.text();
 
-  const dom = new JSDOM(r);
-  const repositoryCards =
-    dom.window.document.querySelectorAll("article.Box-row");
+  const $ = cheerio.load(body);
 
+  const repositoryCards = $("article.Box-row");
   const res = [];
   for (let i = 0; i < 5; i++) {
-    const repositoryCard = repositoryCards.item(i);
-    const repositoryCreator = repositoryCard.querySelector("h2.h3 > a");
-    const description = repositoryCard.querySelector("p").textContent.trim();
-    const repositoryLink = `https://github.com${repositoryCreator.getAttribute(
-      "href"
-    )}`;
-    const repositoryTitle = repositoryCreator
-      .querySelector("span")
-      .textContent.split("/")[0]
-      .trim();
-    const repositoryName = repositoryCreator.textContent.split("/")[1].trim();
-
+    const repositoryCard = $(repositoryCards.get(i));
+    const repositoryCreator = repositoryCard.find("h2.h3 > a").text().trim();
+    const description =
+      repositoryCard.find("p").text().trim() || "No description provided.";
+    const repositoryLink = `https://github.com${repositoryCard
+      .find("h2.h3 > a")
+      .attr("href")}`;
+    const repositoryNameAndTitle = repositoryCreator.split("/");
+    const repositoryTitle = repositoryNameAndTitle[0].trim();
+    const repositoryName = repositoryNameAndTitle[1].trim();
     res.push({
-      repositoryLink,
+      repositoryName,
       repositoryTitle,
       description,
-      repositoryName,
+      repositoryLink,
     });
   }
 
@@ -48,13 +45,15 @@ export default async function handler(_, response) {
     const embeds = [];
 
     res.forEach((item) => {
-      const { description, repositoryTitle, repositoryLink, repositoryName } =
+      const { description, repositoryName, repositoryTitle, repositoryLink } =
         item;
       const randomColor = Math.floor(Math.random() * 16777215).toString(16);
 
+      const embedTitle = `${repositoryTitle}/${repositoryName}`;
+
       const embededPost = new EmbedBuilder()
         .setColor(+`0x${randomColor}`)
-        .setTitle(repositoryTitle)
+        .setTitle(embedTitle)
         .setDescription(description)
         .setURL(repositoryLink);
 
