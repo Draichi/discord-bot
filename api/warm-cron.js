@@ -41,9 +41,9 @@ export default function handler(_, response) {
     const guild = c.guilds.cache.get("1091486972616376441");
     const channel = guild.channels.cache.get("1102648245106257990");
 
-    const bar = ["typescript", "vue", "javascript"];
+    const languages = ["typescript", "vue", "javascript"];
 
-    for (let language of bar) {
+    for (let language of languages) {
       const githubTrendingResponse = await fetch(
         `https://github.com/trending/${language}?since=daily`
       );
