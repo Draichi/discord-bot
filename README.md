@@ -4,8 +4,6 @@
 
 ```sh
 # dev
-yarn dev
+npx vercel dev
 
-# prod
-yarn start
 ```

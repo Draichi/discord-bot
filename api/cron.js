@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, EmbedBuilder } from "discord.js";
-import { JSDOM } from "jsdom";
 import * as dotenv from "dotenv";
+import * as cheerio from "cheerio";
 
 dotenv.config();
 
@@ -11,28 +11,26 @@ export default async function handler(_, response) {
     "https://www.awwwards.com/websites/sites_of_the_day/"
   );
 
-  const r = await awwwardsResponse.text();
+  const body = await awwwardsResponse.text();
 
-  const dom = new JSDOM(r);
-  const cards = dom.window.document.querySelectorAll("li.js-collectable");
+  const $ = cheerio.load(body);
+  const cards = $("li.js-collectable");
 
   const res = [];
 
   for (let i = 0; i < 3; i++) {
-    const card = cards.item(i);
-    const websiteURL = card
-      .querySelector(".figure-rollover__bt")
-      .getAttribute("href");
-    const websiteTitle = card
-      .querySelectorAll(".figure-rollover__row")
-      .item(1).textContent;
+    const card = $(cards.get(i));
+
+    const websiteURL = card.find(".figure-rollover__bt").attr("href");
+    const websiteTitle = $(card.find(".figure-rollover__row").get(1)).text();
     const websiteImage = card
-      .querySelector(".figure-rollover__file")
-      .getAttribute("data-srcset")
+      .find(".figure-rollover__file")
+      .attr("data-srcset")
       .split(" ")[0];
-    const websiteCompany = card.querySelector(
-      "figcaption.avatar-name__name"
-    ).textContent;
+    const websiteCompany = card
+      .find("figcaption.avatar-name__name")
+      .text()
+      .trim();
     res.push({ websiteImage, websiteTitle, websiteURL, websiteCompany });
   }
 
@@ -59,7 +57,7 @@ export default async function handler(_, response) {
     });
 
     const discordResponse = await channel.send({
-      content: "Quais serão os sites de hoje?",
+      content: "Sites of the day from Awwwards:",
       embeds,
     });
 
