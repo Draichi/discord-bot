@@ -4,20 +4,11 @@ import * as cheerio from "cheerio";
 
 dotenv.config();
 
-export default async function handler(_, response) {
-  const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-  const githubTypescriptTrendingPage = await fetch(
-    "https://github.com/trending/typescript?since=daily"
-  );
-
-  const body = await githubTypescriptTrendingPage.text();
-
+function createEmbedPost(body) {
   const $ = cheerio.load(body);
-
   const repositoryCards = $("article.Box-row");
-  const res = [];
-  for (let i = 0; i < 5; i++) {
+  const embeds = [];
+  for (let i = 0; i < 3; i++) {
     const repositoryCard = $(repositoryCards.get(i));
     const repositoryCreator = repositoryCard.find("h2.h3 > a").text().trim();
     const description =
@@ -28,13 +19,21 @@ export default async function handler(_, response) {
     const repositoryNameAndTitle = repositoryCreator.split("/");
     const repositoryTitle = repositoryNameAndTitle[0].trim();
     const repositoryName = repositoryNameAndTitle[1].trim();
-    res.push({
-      repositoryName,
-      repositoryTitle,
-      description,
-      repositoryLink,
-    });
+
+    const embedTitle = `${repositoryTitle}/${repositoryName}`;
+    const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+    const embedPost = new EmbedBuilder()
+      .setColor(+`0x${randomColor}`)
+      .setTitle(embedTitle)
+      .setDescription(description)
+      .setURL(repositoryLink);
+    embeds.push(embedPost);
   }
+  return embeds;
+}
+
+export default function handler(_, response) {
+  const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
   client.login(process.env.DISCORD_BOT_TOKEN);
 
@@ -42,29 +41,22 @@ export default async function handler(_, response) {
     const guild = c.guilds.cache.get("1091486972616376441");
     const channel = guild.channels.cache.get("1102648245106257990");
 
-    const embeds = [];
+    const bar = ["typescript", "vue", "javascript"];
 
-    res.forEach((item) => {
-      const { description, repositoryName, repositoryTitle, repositoryLink } =
-        item;
-      const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+    for (let language of bar) {
+      const githubTrendingResponse = await fetch(
+        `https://github.com/trending/${language}?since=daily`
+      );
+      const body = await githubTrendingResponse.text();
 
-      const embedTitle = `${repositoryTitle}/${repositoryName}`;
+      const embeds = createEmbedPost(body);
 
-      const embededPost = new EmbedBuilder()
-        .setColor(+`0x${randomColor}`)
-        .setTitle(embedTitle)
-        .setDescription(description)
-        .setURL(repositoryLink);
+      await channel.send({
+        content: `Top 3 trending ${language} repositories on GitHub today:`,
+        embeds,
+      });
+    }
 
-      embeds.push(embededPost);
-    });
-
-    const discordResponse = await channel.send({
-      content: "Top 5 trending TypeScript repositories on GitHub today:",
-      embeds,
-    });
-
-    return response.send(discordResponse);
+    response.json({ message: "OK" });
   });
 }
